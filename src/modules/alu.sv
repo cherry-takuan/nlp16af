@@ -17,12 +17,12 @@ module ALU (
 
     assign  o_data = o_alu[15:0];
 
-    function [16:0] alu_core;
-        input   logic   [5:0]   i_ctrl;
-        input   logic           i_carry;
-        input   logic   [15:0]  i_data_a;
-        input   logic   [15:0]  i_data_b;
-        
+    function [16:0] alu_core(
+        input   logic   [5:0]   i_ctrl,
+        input   logic           i_carry,
+        input   logic   [15:0]  i_data_a,
+        input   logic   [15:0]  i_data_b
+    );
         begin
             case(i_ctrl)
                 6'h0A   : alu_core = i_data_a + i_data_b;
