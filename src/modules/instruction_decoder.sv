@@ -53,14 +53,14 @@ module instruction_decoder(
                 else                next_state = IF1;
             end
             POP1: begin
-                next_state = PUSH2;
+                next_state = POP2;
             end
             POP2: begin
                 next_state = IF1;
             end
             EXE: begin
                 if(load_inst)       next_state = RD;
-                else if(store_inst) next_state = RD;
+                else if(store_inst) next_state = WR;
                 else                next_state = IF1;
             end
             RD: begin
