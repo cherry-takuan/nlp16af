@@ -5,7 +5,7 @@ module inst_decoder_tb;
     reg     [15:0]  ir1;
     reg     [15:0]  ir2;
 
-    wire    [15:0]  state;
+    wire    [3:0]   state;
     wire            err;
 
     wire    [5:0]   alu_op;
@@ -43,15 +43,15 @@ module inst_decoder_tb;
 
     initial begin
         rst_n       <=  0;
-        ir1         <=  16'h0000;
-        ir2         <=  16'h3000;
+        ir1         <=  16'h2000;
+        ir2         <=  16'h6700;
         #2
         rst_n       <=  1;
         #20
 
         rst_n       <=  0;
-        ir1         <=  16'h2000;
-        ir2         <=  16'h3000;
+        ir1         <=  16'hB01D;
+        ir2         <=  16'h5600;
         #2
         rst_n       <=  1;
         #20
