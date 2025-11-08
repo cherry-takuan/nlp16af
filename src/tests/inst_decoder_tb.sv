@@ -8,6 +8,13 @@ module inst_decoder_tb;
     wire    [15:0]  state;
     wire            err;
 
+    wire    [5:0]   alu_op;
+    wire    [3:0]   s1;       // alu source1
+    wire    [3:0]   s2;       // alu source2
+    wire    [3:0]   dest;     // alu destination
+    wire            mem_wr;   // mem write
+    wire            mem_rd;   // mem read
+
     initial begin
         $dumpfile("inst_decoder.vcd");
         $dumpvars(0,DUT);
@@ -20,7 +27,14 @@ module inst_decoder_tb;
         .i_ir2      (ir2        ),
 
         .o_state    (state      ),
-        .o_err      (err        )
+        .o_err      (err        ),
+
+        .o_alu_op   (alu_op     ),
+        .o_s1       (s1         ),
+        .o_s2       (s2         ),
+        .o_dest     (dest       ),
+        .o_mem_wr   (mem_wr     ),
+        .o_mem_rd   (mem_rd     )
     );
 
     always #1 begin
@@ -33,7 +47,14 @@ module inst_decoder_tb;
         ir2         <=  16'h3000;
         #2
         rst_n       <=  1;
-        #40
+        #20
+
+        rst_n       <=  0;
+        ir1         <=  16'h2000;
+        ir2         <=  16'h3000;
+        #2
+        rst_n       <=  1;
+        #20
 
         $finish;
     end

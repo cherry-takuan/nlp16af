@@ -1,19 +1,19 @@
 {
     "signal": [
-        { "name": "Phase",          "wave": "x33344556782",
-                                    "data": ["IR1", "IR2","IR3","PUSH","PUSH","POP","POP","EXE","RD","WR"] },
+        { "name": "Phase",          "wave": "x33333344226222",
+                                    "data": ["IF1","D1", "IF2","D2","IF3","D3","PUSH","PUSH","POP","POP","EXE","RD","WR"] },
         { "name": "clk",            "wave": "p..........." },
-        { "name": "IP",             "wave": "x3332.......",
+        { "name": "IP",             "wave": "x33.3.2........",
                                     "data":["X","X+1","X+2","X+3"]},
-        { "name": "addr",           "wave": "x3334455x782",
+        { "name": "addr",           "wave": "x33.3.x4422x222",
                                     "data":["X","X+1","X+2","SP","SP","SP","SP","addr","addr"]},
-        { "name": "s1",             "wave": "x33344556782",
+        { "name": "s1",             "wave": "x3x3x3x44226222",
                                     "data": ["MEM", "MEM","MEM","SP","RA1","MEM","SP","RA2"] },
-        { "name": "s2",             "wave": "xxxxxxxx6xxx",
+        { "name": "s2",             "wave": "xxxxxxxxxxx6xxx",
                                     "data": ["RA3"] },
-        { "name": "dist",           "wave": "x33344556782",
+        { "name": "dest",           "wave": "x3.3.3.44226222",
                                     "data": ["IR1", "IR2","IR3","SP","MEM","RA1","SP","RA1"] },
-        { "name": "alu",            "wave": "x33344556782",
+        { "name": "alu",            "wave": "x3.3.3.44226222",
                                     "data": ["", "","","DEC","","","INC","op","",""] }
     ]
 }
