@@ -63,8 +63,6 @@ module instruction_decoder(
         end
     end
 
-    // alu operation
-    // s1,s2,dest
     always_comb begin
         next_state = now_state;
         o_err = 0;
@@ -137,7 +135,7 @@ module instruction_decoder(
             end
             EXE: begin
                 if(load_inst)       next_state = RD;
-                else if(store_inst) next_state = RD;
+                else if(store_inst) next_state = WR;
                 else                next_state = IF1;
                 o_alu_op = inst_alu_op;
                 o_s1 = ra2;
