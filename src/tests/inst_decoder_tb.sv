@@ -5,8 +5,11 @@ module inst_decoder_tb;
     reg     [15:0]  ir1;
     reg     [15:0]  ir2;
 
-    wire    [15:0]  state;
     wire            err;
+
+    wire    [3:0]   s1;
+    wire    [3:0]   s2;
+    wire    [3:0]   dest;
 
     initial begin
         $dumpfile("inst_decoder.vcd");
@@ -19,8 +22,10 @@ module inst_decoder_tb;
         .i_ir1      (ir1        ),
         .i_ir2      (ir2        ),
 
-        .o_state    (state      ),
-        .o_err      (err        )
+        .o_err      (err        ),
+        .o_s1       (s1         ),
+        .o_s2       (s2         ),
+        .o_dest     (dest       )
     );
 
     always #1 begin
