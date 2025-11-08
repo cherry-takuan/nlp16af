@@ -1,4 +1,6 @@
 // instruction decoder for NLP-16AF
+`include "../modules/common_pkg.sv"
+import common_pkg::*;
 
 module instruction_decoder(
     input   logic           i_clk,
@@ -15,25 +17,7 @@ module instruction_decoder(
     output  logic           o_mem_wr,   // mem write
     output  logic           o_mem_rd    // mem read
 );
-    // ALU instructions
-    parameter ALU_INC = 6'h1B;
-    parameter ALU_DEC = 6'h08;
-    parameter ALU_MOV = 6'h00;
-
-    // reg address
-    parameter IR1   = 4'h0;
-    parameter IR2   = 4'h1;
-    parameter IV    = 4'h2;
-    parameter IR3   = 4'h3;
-    parameter FLAG  = 4'h4;
-    parameter MEM   = 4'hB;
-    parameter ADDR  = 4'hC;
-    parameter IP    = 4'hD;
-    parameter SP    = 4'hE;
-    parameter ZR    = 4'hF;
-
     // FSM state
-    typedef enum logic [3:0] {IF1,D1,IF2,D2,IF3,D3,PUSH1,PUSH2,POP1,POP2,EXE,RD,WR} inst_state_e;
     inst_state_e now_state,next_state;
     logic   [3:0]   inst;
     logic           op_inst,push_inst,pop_inst,call_inst,load_inst,store_inst;
@@ -111,26 +95,26 @@ module instruction_decoder(
     // countroll signal
     always_comb begin
         o_alu_op = ALU_MOV;
-        o_s1 = ZR;
-        o_s2 = ZR;
-        o_dest = ZR;
+        o_s1 = R_ZR;
+        o_s2 = R_ZR;
+        o_dest = R_ZR;
         o_mem_rd = 0;
         o_mem_wr = 0;
         case(now_state)
-            IF1     :bus_ctrl(ALU_MOV,  IR1,    MEM,    ZR);
-            D1      :bus_ctrl(ALU_INC,  IP,     IP,     ZR);
-            IF2     :bus_ctrl(ALU_MOV,  IR2,    MEM,    ZR);
-            D2      :bus_ctrl(ALU_INC,  IP,     IP,     ZR);
-            IF3     :bus_ctrl(ALU_MOV,  IR3,    MEM,    ZR);
-            D3      :bus_ctrl(ALU_INC,  IP,     IP,     ZR);
-            PUSH1   :bus_ctrl(ALU_DEC,  SP,     SP,     ZR);
-            PUSH2   :bus_ctrl(ALU_MOV,  MEM,    ra1,    ZR);
-            POP1    :bus_ctrl(ALU_MOV,  ra1,    MEM,    ZR);
-            POP2    :bus_ctrl(ALU_INC,  SP,     SP,     ZR);
-            EXE     :bus_ctrl(alu_op,   ra1,    ra2,   ra3);
-            RD      :bus_ctrl(ALU_MOV,  ra1,    MEM,    ZR);
-            WR      :bus_ctrl(ALU_MOV,  MEM,    ra1,    ZR);
-            default :bus_ctrl(ALU_MOV,  ZR,     ZR,     ZR);
+            IF1     :bus_ctrl(ALU_MOV,  R_IR1,      R_MEM,      R_ZR);
+            D1      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
+            IF2     :bus_ctrl(ALU_MOV,  R_IR2,      R_MEM,      R_ZR);
+            D2      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
+            IF3     :bus_ctrl(ALU_MOV,  R_IR3,      R_MEM,      R_ZR);
+            D3      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
+            PUSH1   :bus_ctrl(ALU_DEC,  R_SP,       R_SP,       R_ZR);
+            PUSH2   :bus_ctrl(ALU_MOV,  R_MEM,      ra1,        R_ZR);
+            POP1    :bus_ctrl(ALU_MOV,  ra1,        R_MEM,      R_ZR);
+            POP2    :bus_ctrl(ALU_INC,  R_SP,       R_SP,       R_ZR);
+            EXE     :bus_ctrl(alu_op,   ra1,        ra2,         ra3);
+            RD      :bus_ctrl(ALU_MOV,  ra1,        R_MEM,      R_ZR);
+            WR      :bus_ctrl(ALU_MOV,  R_MEM,      ra1,        R_ZR);
+            default :bus_ctrl(ALU_MOV,  R_ZR,       R_ZR,       R_ZR);
         endcase
     end
 
@@ -144,15 +128,15 @@ module instruction_decoder(
             o_s1    = i_s1;
             o_s2    = i_s2;
             o_dest  = i_dest;
-            if (i_dest == MEM) begin
+            if (i_dest == R_MEM) begin
                 o_mem_wr    = 1;
                 o_mem_rd    = 0;
-                o_dest      = ZR;
+                o_dest      = R_ZR;
             end
-            else if (i_s1 == MEM || i_s2 == MEM) begin
+            else if (i_s1 == R_MEM || i_s2 == R_MEM) begin
                 o_mem_rd    = 1;
-                o_s1        = ZR;
-                o_s2        = ZR;
+                o_s1        = R_ZR;
+                o_s2        = R_ZR;
             end
             o_alu_op= i_alu_op;
         end

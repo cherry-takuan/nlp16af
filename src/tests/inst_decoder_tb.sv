@@ -43,7 +43,7 @@ module inst_decoder_tb;
 
     initial begin
         rst_n       <=  0;
-        ir1         <=  16'h2000;
+        ir1         <=  16'h2005;
         ir2         <=  16'h6700;
         #2
         rst_n       <=  1;
@@ -51,7 +51,7 @@ module inst_decoder_tb;
 
         rst_n       <=  0;
         ir1         <=  16'hB01D;
-        ir2         <=  16'h5600;
+        ir2         <=  16'h3600;
         #2
         rst_n       <=  1;
         #20
