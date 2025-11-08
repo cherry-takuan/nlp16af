@@ -36,6 +36,13 @@ package common_pkg;
         R_ZR        = 4'hF,
 
         R_IP        = 4'hD,
-        R_SP        = 4'hE
+        R_SP        = 4'hE,
+
+        R_REGA      = 4'h5,
+        R_REGB      = 4'h6,
+        R_REGC      = 4'h7,
+        R_REGD      = 4'h8,
+        R_REGE      = 4'h9,
+        R_REGF      = 4'hA
     } reg_id_e;
 endpackage

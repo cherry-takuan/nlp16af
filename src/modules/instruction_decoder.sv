@@ -7,13 +7,13 @@ module instruction_decoder(
     input   logic           i_rst_n,
     input   logic   [15:0]  i_ir1,      // instruction reg 1st
     input   logic   [15:0]  i_ir2,      // instruction reg 2nd
-    output  logic   [3:0]   o_state,    // instruction reg 3rd
+    output  inst_state_e    o_state,    // instruction reg 3rd
     output  logic           o_err,
 
-    output  logic   [5:0]   o_alu_op,   // alu opcode
-    output  logic   [3:0]   o_s1,       // alu source1
-    output  logic   [3:0]   o_s2,       // alu source2
-    output  logic   [3:0]   o_dest,     // alu destination
+    output  alu_op_e        o_alu_op,   // alu opcode
+    output  reg_id_e        o_s1,       // alu source1
+    output  reg_id_e        o_s2,       // alu source2
+    output  reg_id_e        o_dest,     // alu destination
     output  logic           o_mem_wr,   // mem write
     output  logic           o_mem_rd    // mem read
 );
@@ -22,8 +22,10 @@ module instruction_decoder(
     logic   [3:0]   inst;
     logic           op_inst,push_inst,pop_inst,call_inst,load_inst,store_inst;
     logic           im16_inst;
-    logic   [5:0]   alu_op;
-    logic   [3:0]   ra1,ra2,ra3;
+    alu_op_e        alu_op;
+    reg_id_e        ra1,ra2,ra3;
+
+    assign  o_state     = now_state;
 
     // instruction decode
     assign  inst        = i_ir1[15:12];
