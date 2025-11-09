@@ -16,15 +16,16 @@ module nlp16af(
 );
     // internal bus
     reg_id_e        s1_addr,s2_addr,dest_addr,addr_reg;
-    logic   [15:0]  s1_data,s2_data,dest_data,addr_data;
+    logic   [15:0]  s1_data,s2_data,dest_data,addr;
     logic   [15:0]  data_a,data_b;
+    logic   [15:0]  ir1,ir2;
+    logic           carry;
+    assign  carry   = flag_reg[3];
 
     // bus ctrl
     assign  data_a  = s1_addr   == R_MEM ? i_bus    : s1_data;
     assign  data_b  = s2_addr   == R_MEM ? i_bus    : s2_data;
     assign  o_bus   = dest_addr == R_MEM ? dest_data: 16'h0000;
-
-    logic   [15:0]  ir1,ir2;
 
     // io bus
     logic   [15:0]  address;
@@ -32,7 +33,11 @@ module nlp16af(
 
     // ctrl
     alu_op_e        alu_op;
-    logic   [3:0]   flag;
+    logic   [3:0]   flag_alu;
+    logic   [3:0]   flag_reg;
+    logic           flag_w_en;
+    logic           reg_w_en;
+
     inst_state_e    state;
     logic           err;
 
@@ -44,42 +49,53 @@ module nlp16af(
 
         .o_state    (state      ),
         .o_err      (err        ),
-
+        // alu ctrl
         .o_alu_op   (alu_op     ),
-        .o_s1       (s1_addr    ),
-        .o_s2       (s2_addr    ),
-        .o_dest     (dest_addr  ),
+        // reg ctrl
+        .o_s1_addr  (s1_addr    ),
+        .o_s2_addr  (s2_addr    ),
+        .o_dest_addr(dest_addr  ),
+        // bus ctrl
         .o_mem_wr   (mem_wr     ),
         .o_mem_rd   (mem_rd     ),
+        .o_addr_reg (addr_reg   ),
 
-        .o_addr_reg (addr_reg   )
+        .o_reg_w_en (reg_w_en  ),
+
+        .i_flag_cond(flag_reg   ),
+        .o_flag_w_en(flag_w_en  )
     );
 
     ALU ALU(
         .i_ctrl     (alu_op     ),
         .i_data_a   (data_a     ),
         .i_data_b   (data_b     ),
-        .i_carry    (1'b0       ),
+        .i_carry    (carry      ),
 
         .o_data     (dest_data  ),
-        .o_flag     (flag       )
+        .o_flag     (flag_alu   )
     );
     register_file reg_file(
+        // ctrl
         .i_clk      (i_clk      ),
         .i_rst_n    (i_rst_n    ),
-        .i_wr_en    (1'b1       ),
-
+        .i_reg_w_en (reg_w_en   ),
+        .i_flag_w_en(flag_w_en  ),
+        // reg addr sel
         .i_dest_addr(dest_addr  ),
         .i_s1_addr  (s1_addr    ),
         .i_s2_addr  (s2_addr    ),
-        .i_ab_addr  (addr_reg   ),
-
+        .i_addr_reg (addr_reg   ),
+        // data bus
         .i_dest_data(dest_data  ),
         .o_s1_data  (s1_data    ),
         .o_s2_data  (s2_data    ),
-        .o_ab_data  (addr_data  ),
-
+        .o_addr     (addr       ),
+        // ctrl bus
         .o_ir1      (ir1        ),
-        .o_ir2      (ir2        )
+        .o_ir2      (ir2        ),
+
+        .i_flag_alu (flag_alu   ),
+        .o_flag_reg (flag_reg   )
     );
 endmodule

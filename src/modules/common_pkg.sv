@@ -47,5 +47,13 @@ package common_pkg;
         R_REGE      = 4'h9,
         R_REGF      = 4'hA
     } reg_id_e;
+
+    typedef enum logic [2:0]{
+        FLAGT_NOP   = 3'o0,
+        FLAGT_C     = 3'o4,
+        FLAGT_V     = 3'o5,
+        FLAGT_Z     = 3'o6,
+        FLAGT_S     = 3'o7
+    } flag_type_e;
 endpackage
 `endif

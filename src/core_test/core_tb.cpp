@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     // クロック初期化
     dut->i_clk = 0;
     dut->i_rst_n = 0;
-    dut->i_bus = 0x0A05;
+    dut->i_bus = 0x0915;
     tick();          // clk = 1
     dut->i_rst_n = 1;
     tick();          // clk = 1
@@ -36,7 +36,45 @@ int main(int argc, char **argv) {
     tick();          // clk = 1
     tick();          // clk = 1
     dut->i_bus = 0x000A;
-    for (int i=0; i<10; i++) tick();
+    tick();          // clk = 1
+    tick();          // clk = 1
+    tick();          // EXE
+    tick();          // clk = 1
+    dut->i_rst_n = 0;
+    tick();          // EXE
+
+    dut->i_bus = 0xB00D;
+    tick();          // clk = 1
+    dut->i_rst_n = 1;
+    tick();          // clk = 1
+    dut->i_bus = 0x1005;
+    tick();          // clk = 1
+    tick();          // clk = 1
+    tick();          // EXE
+    tick();          // EXE
+    tick();          // EXE
+    tick();          // clk = 1
+    dut->i_rst_n = 0;
+    tick();          // EXE
+
+    dut->i_bus = 0xB01D;
+    tick();          // clk = 1
+    dut->i_rst_n = 1;
+    tick();          // clk = 1
+    dut->i_bus = 0x1005;
+    tick();          // clk = 1
+    tick();          // clk = 1
+    tick();          // EXE
+    tick();          // EXE
+    tick();          // EXE
+    tick();          // clk = 1
+    dut->i_rst_n = 0;
+    tick();          // EXE
+
+
+
+
+    //for (int i=0; i<10; i++) tick();
 
     // シミュレーション終了
     tfp->close();

@@ -11,22 +11,30 @@ module instruction_decoder(
     output  logic           o_err,
 
     output  alu_op_e        o_alu_op,   // alu opcode
-    output  reg_id_e        o_s1,       // alu source1
-    output  reg_id_e        o_s2,       // alu source2
-    output  reg_id_e        o_dest,     // alu destination
+    output  reg_id_e        o_s1_addr,  // alu source1
+    output  reg_id_e        o_s2_addr,  // alu source2
+    output  reg_id_e        o_dest_addr,// alu destination
     output  logic           o_mem_wr,   // mem write
     output  logic           o_mem_rd,   // mem read
-    output  reg_id_e        o_addr_reg
+    output  reg_id_e        o_addr_reg,
+    output  logic           o_reg_w_en,
+
+    input   logic   [3:0]   i_flag_cond,
+    output  logic           o_flag_w_en
 );
     // FSM state
     inst_state_e now_state,next_state;
     logic   [3:0]   inst;
     logic           op_inst,push_inst,pop_inst,call_inst,load_inst,store_inst,ma_inst;
+    logic   [3:0]   flag_fld;
     logic           im16_inst;
     alu_op_e        alu_op;
     reg_id_e        ra1,ra2,ra3;
-
-    assign  o_state     = now_state;
+    flag_type_e     flag_type;
+    logic           flag_inv;
+    logic           flag_dec;
+    logic           reg_w_en,mem_rd,mem_wr;
+    logic           wb_phase,wb;
 
     // instruction decode
     assign  inst        = i_ir1[15:12];
@@ -38,12 +46,20 @@ module instruction_decoder(
     assign  load_inst   = inst[3:0] == 4'b1000;
     assign  store_inst  = inst[3:0] == 4'b1001;
     assign  ma_inst     = load_inst | store_inst;
+    assign  wb_phase    = now_state == EXE || now_state == EXEA || now_state == WR || now_state == RD || now_state == PUSH1 || now_state == PUSH2 || now_state == POP1 || now_state == POP2;
 
     assign alu_op       = op_inst ? i_ir1[13:8] : {2'b00,i_ir1[11:8]};
 
     assign ra1          = i_ir1[3:0];
     assign ra2          = i_ir2[15:12];
     assign ra3          = i_ir2[11:8];
+
+    assign  flag_fld    = i_ir1[7:4];
+    assign  flag_type   = flag_fld[3:1];
+    // flag_fld[0]が1で反転モード
+    assign  flag_inv    = flag_fld[0];
+
+    assign  o_state     = now_state;
 
     // update state
     always_ff @( posedge i_clk or negedge i_rst_n ) begin
@@ -102,13 +118,13 @@ module instruction_decoder(
     
     // controll signal
     always_comb begin
-        o_alu_op = ALU_MOV;
-        o_s1 = R_ZR;
-        o_s2 = R_ZR;
-        o_dest = R_ZR;
-        o_addr_reg = R_ZR;
-        o_mem_rd = 0;
-        o_mem_wr = 0;
+        o_alu_op    = ALU_MOV;
+        o_s1_addr   = R_ZR;
+        o_s2_addr   = R_ZR;
+        o_dest_addr = R_ZR;
+        o_addr_reg  = R_ZR;
+        mem_rd = 0;
+        mem_wr = 0;
         case(now_state)
         //  state            |alu op    |dest   |s1     |s2     |address bus
             IF1     :bus_ctrl(ALU_MOV,  R_IR1,  R_MEM,  R_ZR,   R_IP    );
@@ -128,30 +144,47 @@ module instruction_decoder(
             default :bus_ctrl(ALU_MOV,  R_ZR,   R_ZR,   R_ZR,   R_ADDR  );
         endcase
     end
-
     task automatic bus_ctrl(
         input   alu_op_e    i_alu_op,
-        input   reg_id_e    i_dest,
-        input   reg_id_e    i_s1,
-        input   reg_id_e    i_s2,
-        input   reg_id_e    i_ab_addr
+        input   reg_id_e    i_dest_addr,
+        input   reg_id_e    i_s1_addr,
+        input   reg_id_e    i_s2_addr,
+        input   reg_id_e    addr_reg
     );
         begin
-            o_s1        = i_s1;
-            o_s2        = i_s2;
-            o_dest      = i_dest;
-            o_addr_reg  = i_ab_addr;
-            if (i_dest == R_MEM) begin
-                o_mem_wr    = 1;
-                o_mem_rd    = 0;
+            o_s1_addr   = i_s1_addr;
+            o_s2_addr   = i_s2_addr;
+            o_dest_addr = i_dest_addr;
+            o_addr_reg  = addr_reg;
+            if (i_dest_addr == R_MEM) begin
+                mem_wr    = 1;
+                mem_rd    = 0;
                 //o_dest      = R_ZR;
             end
-            else if (i_s1 == R_MEM || i_s2 == R_MEM) begin
-                o_mem_rd    = 1;
+            else if (i_s1_addr == R_MEM || i_s2_addr == R_MEM) begin
+                mem_rd    = 1;
                 //o_s1        = R_ZR;
                 //o_s2        = R_ZR;
             end
             o_alu_op= i_alu_op;
         end
     endtask
+    // 書戻し関連
+    // ライトバックのフェーズ(wb_phase)ではフラグに従う
+    always_comb begin
+        case(flag_type)
+            FLAGT_C:    flag_dec  = i_flag_cond[3] ^ flag_inv;
+            FLAGT_S:    flag_dec  = i_flag_cond[2] ^ flag_inv;
+            FLAGT_V:    flag_dec  = i_flag_cond[1] ^ flag_inv;
+            FLAGT_Z:    flag_dec  = i_flag_cond[0] ^ flag_inv;
+            FLAGT_NOP:  flag_dec  = 1'b0 ^ flag_inv;
+            default:    flag_dec  = 1'b0;
+        endcase
+    end
+    assign  wb = wb_phase ? flag_dec : 1'b1;
+
+    assign  o_reg_w_en  = wb;
+    assign  o_mem_wr    = wb & mem_wr;
+    assign  o_flag_w_en = wb & (now_state==EXE);
+    assign  o_mem_rd    = mem_rd;
 endmodule
