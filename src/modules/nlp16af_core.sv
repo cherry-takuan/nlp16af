@@ -26,6 +26,7 @@ module nlp16af(
     assign  data_a  = s1_addr   == R_MEM ? i_bus    : s1_data;
     assign  data_b  = s2_addr   == R_MEM ? i_bus    : s2_data;
     assign  o_bus   = dest_addr == R_MEM ? dest_data: 16'h0000;
+    assign  o_address = addr;
 
     // io bus
     logic   [15:0]  address;
