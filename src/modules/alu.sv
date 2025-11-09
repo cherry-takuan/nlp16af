@@ -2,7 +2,7 @@
 import common_pkg::*;
 
 module ALU (
-    input   logic   [5:0]   i_ctrl,
+    input   alu_op_e        i_ctrl,
     input   logic   [15:0]  i_data_a,   i_data_b,
     input   logic           i_carry,
 

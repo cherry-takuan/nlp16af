@@ -30,7 +30,7 @@ module instruction_decoder(
 
     // instruction decode
     assign  inst        = i_ir1[15:12];
-    assign  im16_inst   = i_ir2[15:12] == 4'h3 || i_ir2[11:8] == 4'h3;
+    assign  im16_inst   = i_ir2[15:12] == R_IR3 || i_ir2[11:8] == R_IR3;
     assign  op_inst     = inst[3:2] == 2'b00;
     assign  push_inst   = inst[3:0] == 4'b1101;
     assign  pop_inst    = inst[3:0] == 4'b1100;
@@ -144,12 +144,12 @@ module instruction_decoder(
             if (i_dest == R_MEM) begin
                 o_mem_wr    = 1;
                 o_mem_rd    = 0;
-                o_dest      = R_ZR;
+                //o_dest      = R_ZR;
             end
             else if (i_s1 == R_MEM || i_s2 == R_MEM) begin
                 o_mem_rd    = 1;
-                o_s1        = R_ZR;
-                o_s2        = R_ZR;
+                //o_s1        = R_ZR;
+                //o_s2        = R_ZR;
             end
             o_alu_op= i_alu_op;
         end
