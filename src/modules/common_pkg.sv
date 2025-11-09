@@ -2,7 +2,7 @@
 `define COMMON_PKG_SV
 package common_pkg;
     // FSM state type
-    typedef enum logic [3:0] {IF1,D1,IF2,D2,IF3,D3,PUSH1,PUSH2,POP1,POP2,EXE,RD,WR} inst_state_e;
+    typedef enum logic [3:0] {IF1,D1,IF2,D2,IF3,D3,PUSH1,PUSH2,POP1,POP2,EXE,EXEA,RD,WR} inst_state_e;
 
     // ALU op type
     typedef enum logic [5:0]{

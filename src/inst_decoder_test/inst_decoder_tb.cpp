@@ -44,6 +44,14 @@ int main(int argc, char **argv) {
     dut->i_rst_n = 1;
     for (int i=0; i<20; i++) tick();
 
+    // 3回目のリセットと異なる入力
+    dut->i_rst_n = 0;
+    dut->i_ir1 = 0x8A15;
+    dut->i_ir2 = 0xD255;
+    tick();
+    dut->i_rst_n = 1;
+    for (int i=0; i<20; i++) tick();
+
     // シミュレーション終了
     tfp->close();
     delete dut;

@@ -12,7 +12,8 @@ module inst_decoder_tb(
     output  reg_id_e        o_s2,       // alu source2
     output  reg_id_e        o_dest,     // alu destination
     output  logic           o_mem_wr,   // mem write
-    output  logic           o_mem_rd    // mem read
+    output  logic           o_mem_rd,   // mem read
+    output  reg_id_e        o_addr_reg
 );
     instruction_decoder instruction_decoder(
         .i_clk      (i_clk        ),
@@ -28,6 +29,7 @@ module inst_decoder_tb(
         .o_s2       (o_s2         ),
         .o_dest     (o_dest       ),
         .o_mem_wr   (o_mem_wr     ),
-        .o_mem_rd   (o_mem_rd     )
+        .o_mem_rd   (o_mem_rd     ),
+        .o_addr_reg (o_addr_reg   )
     );
 endmodule

@@ -15,12 +15,13 @@ module instruction_decoder(
     output  reg_id_e        o_s2,       // alu source2
     output  reg_id_e        o_dest,     // alu destination
     output  logic           o_mem_wr,   // mem write
-    output  logic           o_mem_rd    // mem read
+    output  logic           o_mem_rd,   // mem read
+    output  reg_id_e        o_addr_reg
 );
     // FSM state
     inst_state_e now_state,next_state;
     logic   [3:0]   inst;
-    logic           op_inst,push_inst,pop_inst,call_inst,load_inst,store_inst;
+    logic           op_inst,push_inst,pop_inst,call_inst,load_inst,store_inst,ma_inst;
     logic           im16_inst;
     alu_op_e        alu_op;
     reg_id_e        ra1,ra2,ra3;
@@ -36,6 +37,7 @@ module instruction_decoder(
     assign  call_inst   = inst[3:0] == 4'b1011;
     assign  load_inst   = inst[3:0] == 4'b1000;
     assign  store_inst  = inst[3:0] == 4'b1001;
+    assign  ma_inst     = load_inst | store_inst;
 
     assign alu_op       = op_inst ? i_ir1[13:8] : {2'b00,i_ir1[11:8]};
 
@@ -66,11 +68,13 @@ module instruction_decoder(
             D2: begin
                 if(im16_inst)       next_state = IF3;
                 else if(call_inst)  next_state = PUSH1;
+                else if(ma_inst)    next_state = EXEA;
                 else                next_state = EXE;
             end
             IF3:                    next_state = D3;
             D3: begin
                 if(call_inst)       next_state = PUSH1;
+                else if(ma_inst)    next_state = EXEA;
                 else                next_state = EXE;
             end
             PUSH1:                  next_state = PUSH2;
@@ -81,9 +85,11 @@ module instruction_decoder(
             POP1:                   next_state = POP2;
             POP2:                   next_state = IF1;
             EXE: begin
+                                    next_state = IF1;
+            end
+            EXEA: begin
                 if(load_inst)       next_state = RD;
-                else if(store_inst) next_state = WR;
-                else                next_state = IF1;
+                else                next_state = WR;
             end
             RD:                     next_state = IF1;
             WR:                     next_state = IF1;
@@ -94,42 +100,47 @@ module instruction_decoder(
         endcase
     end
     
-    // countroll signal
+    // controll signal
     always_comb begin
         o_alu_op = ALU_MOV;
         o_s1 = R_ZR;
         o_s2 = R_ZR;
         o_dest = R_ZR;
+        o_addr_reg = R_ZR;
         o_mem_rd = 0;
         o_mem_wr = 0;
         case(now_state)
-            IF1     :bus_ctrl(ALU_MOV,  R_IR1,      R_MEM,      R_ZR);
-            D1      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
-            IF2     :bus_ctrl(ALU_MOV,  R_IR2,      R_MEM,      R_ZR);
-            D2      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
-            IF3     :bus_ctrl(ALU_MOV,  R_IR3,      R_MEM,      R_ZR);
-            D3      :bus_ctrl(ALU_INC,  R_IP,       R_IP,       R_ZR);
-            PUSH1   :bus_ctrl(ALU_DEC,  R_SP,       R_SP,       R_ZR);
-            PUSH2   :bus_ctrl(ALU_MOV,  R_MEM,      ra1,        R_ZR);
-            POP1    :bus_ctrl(ALU_MOV,  ra1,        R_MEM,      R_ZR);
-            POP2    :bus_ctrl(ALU_INC,  R_SP,       R_SP,       R_ZR);
-            EXE     :bus_ctrl(alu_op,   ra1,        ra2,         ra3);
-            RD      :bus_ctrl(ALU_MOV,  ra1,        R_MEM,      R_ZR);
-            WR      :bus_ctrl(ALU_MOV,  R_MEM,      ra1,        R_ZR);
-            default :bus_ctrl(ALU_MOV,  R_ZR,       R_ZR,       R_ZR);
+        //  state            |alu op    |dest   |s1     |s2     |address bus
+            IF1     :bus_ctrl(ALU_MOV,  R_IR1,  R_MEM,  R_ZR,   R_IP    );
+            D1      :bus_ctrl(ALU_INC,  R_IP,   R_IP,   R_ZR,   R_IP    );
+            IF2     :bus_ctrl(ALU_MOV,  R_IR2,  R_MEM,  R_ZR,   R_IP    );
+            D2      :bus_ctrl(ALU_INC,  R_IP,   R_IP,   R_ZR,   R_IP    );
+            IF3     :bus_ctrl(ALU_MOV,  R_IR3,  R_MEM,  R_ZR,   R_IP    );
+            D3      :bus_ctrl(ALU_INC,  R_IP,   R_IP,   R_ZR,   R_IP    );
+            PUSH1   :bus_ctrl(ALU_DEC,  R_SP,   R_SP,   R_ZR,   R_SP    );
+            PUSH2   :bus_ctrl(ALU_MOV,  R_MEM,  ra1,    R_ZR,   R_SP    );
+            POP1    :bus_ctrl(ALU_MOV,  ra1,    R_MEM,  R_ZR,   R_SP    );
+            POP2    :bus_ctrl(ALU_INC,  R_SP,   R_SP,   R_ZR,   R_SP    );
+            EXE     :bus_ctrl(alu_op,   ra1,    ra2,    ra3,    R_ZR    );
+            EXEA    :bus_ctrl(alu_op,   R_ADDR, ra2,    ra3,    R_ZR    );
+            RD      :bus_ctrl(ALU_MOV,  ra1,    R_MEM,  R_ZR,   R_ADDR  );
+            WR      :bus_ctrl(ALU_MOV,  R_MEM,  ra1,    R_ZR,   R_ADDR  );
+            default :bus_ctrl(ALU_MOV,  R_ZR,   R_ZR,   R_ZR,   R_ADDR  );
         endcase
     end
 
     task automatic bus_ctrl(
-        input   logic   [5:0]   i_alu_op,
-        input   logic   [3:0]   i_dest,
-        input   logic   [3:0]   i_s1,
-        input   logic   [3:0]   i_s2
+        input   alu_op_e    i_alu_op,
+        input   reg_id_e    i_dest,
+        input   reg_id_e    i_s1,
+        input   reg_id_e    i_s2,
+        input   reg_id_e    i_ab_addr
     );
         begin
-            o_s1    = i_s1;
-            o_s2    = i_s2;
-            o_dest  = i_dest;
+            o_s1        = i_s1;
+            o_s2        = i_s2;
+            o_dest      = i_dest;
+            o_addr_reg  = i_ab_addr;
             if (i_dest == R_MEM) begin
                 o_mem_wr    = 1;
                 o_mem_rd    = 0;
