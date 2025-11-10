@@ -48,14 +48,14 @@ module instruction_decoder(
     assign  ma_inst     = load_inst | store_inst;
     assign  wb_phase    = now_state == EXE || now_state == EXEA || now_state == WR || now_state == RD || now_state == PUSH1 || now_state == PUSH2 || now_state == POP1 || now_state == POP2;
 
-    assign alu_op       = op_inst ? i_ir1[13:8] : {2'b00,i_ir1[11:8]};
+    assign alu_op       = alu_op_e'(op_inst ? i_ir1[13:8] : {2'b00,i_ir1[11:8]});
 
-    assign ra1          = i_ir1[3:0];
-    assign ra2          = i_ir2[15:12];
-    assign ra3          = i_ir2[11:8];
+    assign ra1          = reg_id_e'(i_ir1[3:0]);
+    assign ra2          = reg_id_e'(i_ir2[15:12]);
+    assign ra3          = reg_id_e'(i_ir2[11:8]);
 
     assign  flag_fld    = i_ir1[7:4];
-    assign  flag_type   = flag_fld[3:1];
+    assign  flag_type   = flag_type_e'(flag_fld[3:1]);
     // flag_fld[0]が1で反転モード
     assign  flag_inv    = flag_fld[0];
 
