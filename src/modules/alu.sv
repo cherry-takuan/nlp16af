@@ -13,8 +13,8 @@ module ALU (
     logic   flag_s,flag_z,flag_c,flag_v;
     assign o_alu = alu_core(i_ctrl, i_carry, i_data_a, i_data_b);
 
-    assign flag_s = o_alu[15];
-    assign flag_z = o_alu==0;
+    assign flag_s = ~o_alu[15];
+    assign flag_z = ~(o_alu==0);
     assign flag_c = o_alu[16];
     assign flag_v = 1'b0;
     assign o_flag = {flag_c, flag_s, flag_v, flag_z};

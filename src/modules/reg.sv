@@ -34,7 +34,8 @@ module register_file(
     
     assign  o_ir1       = regfile[R_IR1];
     assign  o_ir2       = regfile[R_IR2];
-
+    assign  o_flag_reg  = regfile[R_FLAG];
+    
     logic   [15:0]  s1_val,s2_val,addr_val;
     always_comb begin
         s1_val  = reg_read(i_s1_addr );
