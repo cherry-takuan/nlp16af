@@ -178,7 +178,7 @@ module instruction_decoder(
             FLAGT_V:    flag_dec  = i_flag_cond[1] ^ flag_inv;
             FLAGT_Z:    flag_dec  = i_flag_cond[0] ^ flag_inv;
             FLAGT_NOP:  flag_dec  = 1'b0 ^ flag_inv;
-            default:    flag_dec  = 1'b0;
+            default:    flag_dec  = 1'b0 ^ flag_inv;
         endcase
     end
     assign  wb = wb_phase ? flag_dec : 1'b1;
