@@ -28,26 +28,34 @@ module all_test;
     end
 
     initial begin
-        integer timeout;
-        timeout = 0;
-        while (finish == 1'b0 && timeout < 1000) begin
-            #1; // 1単位時間待つ
-            timeout = timeout + 1;
-        end
-        if (timeout == 1000)
-            $display("Error: reset_nが解除されませんでした");
-    end
-
-
-    initial begin
+        // 1. リセット処理
         i_rst_n     <= 1'b0;
         #2
+        $display("CPU start up");
         i_rst_n     <= 1'b1;
         #2
-        wait(finish == 1'b1)
-        #2
-        $display("result=%04h",data);
-        $display("clk=%d",clk_count);
+
+        // 2. 正常終了とタイムアウトの並列監視
+        fork
+            // 処理A: 正常終了を待つ
+            begin
+                wait(finish === 1'b1);
+            end
+            // 処理B: タイムアウト時間を待つ
+            begin
+                #100000; // 任意のタイムアウト時間
+                $display("Error: time out");
+            end
+        join_any // どちらか一方が成立したら次へ進む
+
+        // 3. 結果の出力と終了処理
+        if (finish !== 1'b1) begin
+            $display("Simulation failed due to timeout.");
+            $finish;
+        end
+
+        $display("result=%04h", data);
+        $display("clk=%d", clk_count);
         $finish;
     end
 

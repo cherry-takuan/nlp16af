@@ -49,7 +49,7 @@ module register_file(
     always_ff @( posedge i_clk) begin
         if(!i_rst_n)begin
             regfile[R_IP] <= 16'h0000;
-            regfile[R_SP] <= 16'h0000;
+            regfile[R_SP] <= 16'hEFFF;
         end
         else begin
             // 書込可かつフラグへの書込でなければ通常通り書込(フラグレジスタへの書込は競合すると困るので禁止)
